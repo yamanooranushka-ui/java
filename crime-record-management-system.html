@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crime Record Management System</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@600&display=swap">
+<style>
+:root{--bg:#f4f6fa;--panel:#fff;--ink:#1c2740;--mute:#5d6b86;--line:#dde3ee;--navy:#22345f;--tag:#f0b429;--tagbg:#fff4d6;--red:#c0392b;--green:#1f8a5b;--blue:#2b6cb0;--r:8px}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font:15px/1.5 "IBM Plex Sans",system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+h1,h2,h3{font-family:"IBM Plex Serif",Georgia,serif;margin:0;font-weight:600}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--tag);outline-offset:2px}
+.hide{display:none!important}
+/* login */
+#login{min-height:100vh;display:grid;grid-template-columns:1.1fr 1fr}
+.l-art{background:var(--navy);color:#fff;padding:56px;display:flex;flex-direction:column;justify-content:flex-end;position:relative;overflow:hidden}
+.l-art .tag{position:absolute;top:40px;left:56px;background:var(--tag);color:var(--navy);padding:8px 14px 8px 28px;font-weight:600;clip-path:polygon(14px 0,100% 0,100% 100%,14px 100%,0 50%)}
+.l-art h1{font-size:40px;line-height:1.15;max-width:12em}
+.l-art p{color:#c4cde2;max-width:30em}
+.l-form{display:grid;place-items:center;padding:32px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:24px}
+.l-form .card{width:min(380px,100%)}
+label{display:block;font-weight:500;font-size:13px;margin:12px 0 4px;color:var(--mute)}
+input,select,textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:6px;background:#fff}
+textarea{min-height:80px;resize:vertical}
+.btn{border:0;background:var(--navy);color:#fff;padding:9px 16px;border-radius:6px;cursor:pointer;font-weight:500}
+.btn:hover{background:#2d4378}
+.btn.alt{background:#fff;color:var(--navy);border:1px solid var(--line)}
+.btn.alt:hover{background:var(--bg)}
+.btn.sm{padding:4px 10px;font-size:13px}
+.btn.del{background:#fff;color:var(--red);border:1px solid #efc7c2}
+.err{color:var(--red);font-size:13px;min-height:20px;margin-top:8px}
+.hint{font-size:12.5px;color:var(--mute);margin-top:14px}
+/* app shell */
+#app{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
+nav{background:#fff;border-right:1px solid var(--line);padding:20px 12px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:4px}
+nav .brand{font-family:"IBM Plex Serif",serif;font-weight:600;padding:4px 10px 18px;line-height:1.25}
+nav .brand small{display:block;font-family:"IBM Plex Sans";font-weight:400;color:var(--mute);font-size:12px}
+nav button{text-align:left;background:none;border:0;padding:9px 12px;border-radius:6px;cursor:pointer;color:var(--mute);border-left:4px solid transparent}
+nav button:hover{background:var(--bg)}
+nav button.on{background:var(--tagbg);color:var(--ink);font-weight:600;border-left-color:var(--tag)}
+nav .sp{flex:1}
+main{padding:28px 32px;min-width:0}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.top h2{font-size:26px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.row input,.row select{width:auto;min-width:150px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:20px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;border-top:4px solid var(--navy)}
+.stat b{font-size:28px;font-family:"IBM Plex Serif",serif;display:block}
+.stat span{color:var(--mute);font-size:13px}
+.stat.s1{border-top-color:var(--red)}.stat.s2{border-top-color:var(--tag)}.stat.s3{border-top-color:var(--green)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.bar{display:grid;grid-template-columns:130px 1fr 28px;gap:10px;align-items:center;margin:8px 0;font-size:14px}
+.bar i{display:block;height:12px;background:var(--navy);border-radius:3px}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);font-size:14px;vertical-align:top}
+th{background:#eef1f7;font-weight:600;color:var(--mute);font-size:13px}
+tr:last-child td{border-bottom:0}
+.pill{display:inline-block;padding:2px 10px;border-radius:99px;font-size:12.5px;font-weight:500}
+.p-Open,.p-Wanted{background:#fde7e4;color:var(--red)}
+.p-Investigating,.p-Arrested{background:var(--tagbg);color:#8a6100}
+.p-Closed,.p-Released{background:#dff3ea;color:var(--green)}
+.empty{padding:28px;text-align:center;color:var(--mute)}
+dialog{border:1px solid var(--line);border-radius:var(--r);padding:22px;width:min(520px,94vw);box-shadow:0 12px 40px rgba(28,39,64,.18)}
+dialog::backdrop{background:rgba(28,39,64,.35)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+.acts{display:flex;gap:6px}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--navy);color:#fff;padding:10px 16px;border-radius:6px;z-index:9}
+@media(max-width:860px){#login{grid-template-columns:1fr}.l-art{min-height:240px;padding:90px 28px 28px}.l-art .tag{left:28px}#app{grid-template-columns:1fr}nav{position:static;height:auto;flex-direction:row;flex-wrap:wrap;border-right:0;border-bottom:1px solid var(--line)}nav .brand,nav .sp{display:none}.two,.g2{grid-template-columns:1fr}main{padding:20px 16px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<section id="login">
+  <div class="l-art">
+    <div class="tag">Case file CRMS-01</div>
+    <h1>Every record in one place, every case accounted for.</h1>
+    </div>
+  <div class="l-form">
+    <div class="card">
+      <h2>Officer sign in</h2>
+      <label for="u">Username</label><input id="u" autocomplete="username">
+      <label for="p">Password</label><input id="p" type="password" autocomplete="current-password">
+      <div class="err" id="lerr"></div>
+      <button class="btn" id="lbtn" style="width:100%">Sign in</button>
+      <div class="hint">Demo account: admin / admin123</div>
+    </div>
+  </div>
+</section>
+
+<div id="app" class="hide">
+  <nav aria-label="Main">
+    <div class="brand">Crime Record<br>Management<small id="who"></small></div>
+    <button data-v="dash" class="on">Dashboard</button>
+    <button data-v="crimes">Crime records</button>
+    <button data-v="crims">Criminals</button>
+    <button data-v="offs">Officers</button>
+    <div class="sp"></div>
+    <button id="out">Sign out</button>
+  </nav>
+  <main id="view"></main>
+</div>
+
+<dialog id="dlg"><div id="dbody"></div></dialog>
+<div class="toast hide" id="toast"></div>
+
+<script>
+/* ===== Object model (mirrors the Java classes) ===== */
+class Person {                         // base class
+  #id; #name;                          // encapsulation: private fields
+  constructor(id, name){ this.#id = id; this.#name = name; }
+  get id(){ return this.#id; }
+  get name(){ return this.#name; }
+  set name(v){ if(!v || !v.trim()) throw new Error("Name cannot be empty."); this.#name = v.trim(); }
+  role(){ return "Person"; }           // overridden in subclasses (polymorphism)
+}
+class Criminal extends Person {
+  constructor(id, name, age, address, status){ super(id, name); this.age = age; this.address = address; this.status = status; }
+  role(){ return "Criminal"; }
+}
+class Officer extends Person {
+  constructor(id, name, rank, badge){ super(id, name); this.rank = rank; this.badge = badge; }
+  role(){ return "Officer"; }
+}
+class CrimeRecord {
+  constructor(o){ Object.assign(this, o); }
+  validate(){
+    if(!this.type || !this.location || !this.date) throw new Error("Type, location and date are required.");
+    if(new Date(this.date) > new Date()) throw new Error("Date cannot be in the future.");
+  }
+}
+
+/* ===== Storage (ArrayList equivalent, saved in the browser) ===== */
+const KEY = "crms-data-v1";
+const TYPES = ["Theft","Robbery","Assault","Fraud","Cyber crime","Vandalism","Homicide","Kidnapping"];
+const CSTAT = ["Open","Investigating","Closed"];
+const PSTAT = ["Wanted","Arrested","Released"];
+let db;
+function seed(){
+  return {
+    crimes:[
+      {id:"CR-1001",type:"Theft",location:"Banjara Hills",date:"2026-10-02",description:"Two-wheeler stolen from a parking lot.",status:"Investigating",officerId:"O-1",criminalId:"C-1"},
+      {id:"CR-1002",type:"Fraud",location:"Madhapur",date:"2026-10-11",description:"Online payment fraud reported by a shop owner.",status:"Open",officerId:"O-2",criminalId:"C-2"},
+      {id:"CR-1003",type:"Assault",location:"Secunderabad",date:"2026-09-21",description:"Altercation outside a bus stand.",status:"Closed",officerId:"O-1",criminalId:"C-3"},
+      {id:"CR-1004",type:"Cyber crime",location:"Gachibowli",date:"2026-11-03",description:"Phishing messages sent to bank customers.",status:"Open",officerId:"O-3",criminalId:""}
+    ],
+    criminals:[
+      {id:"C-1",name:"Ravi Teja",age:29,address:"Mehdipatnam",status:"Wanted"},
+      {id:"C-2",name:"Imran Khan",age:34,address:"Kukatpally",status:"Arrested"},
+      {id:"C-3",name:"Sunil Reddy",age:41,address:"Uppal",status:"Released"}
+    ],
+    officers:[
+      {id:"O-1",name:"Anita Sharma",rank:"Inspector",badge:"HYD-2201"},
+      {id:"O-2",name:"Vikram Rao",rank:"Sub-Inspector",badge:"HYD-2217"},
+      {id:"O-3",name:"Meera Nair",rank:"Inspector",badge:"HYD-2230"}
+    ]};
+}
+function load(){ try{ const s = localStorage.getItem(KEY); db = s ? JSON.parse(s) : seed(); }catch(e){ db = seed(); } }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(db)); }catch(e){} }
+load();
+
+/* ===== Helpers ===== */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const person = (list,id) => list.find(x => x.id === id);
+const pill = s => `<span class="pill p-${esc(s)}">${esc(s)}</span>`;
+function toast(m){ const t=$("#toast"); t.textContent=m; t.classList.remove("hide"); setTimeout(()=>t.classList.add("hide"),2200); }
+function nextId(prefix, list){ const n = list.map(x => parseInt(x.id.split("-")[1])||0); return prefix + "-" + (Math.max(0,...n)+1); }
+const opts = (arr, sel) => arr.map(v => `<option ${v===sel?"selected":""}>${esc(v)}</option>`).join("");
+
+/* ===== Login ===== */
+$("#lbtn").onclick = () => {
+  if($("#u").value.trim()==="admin" && $("#p").value==="admin123"){
+    $("#login").classList.add("hide"); $("#app").classList.remove("hide");
+    $("#who").textContent = "Signed in as admin"; show("dash");
+  } else $("#lerr").textContent = "Wrong username or password. Try admin / admin123.";
+};
+$("#p").addEventListener("keydown", e => { if(e.key==="Enter") $("#lbtn").click(); });
+$("#out").onclick = () => { $("#app").classList.add("hide"); $("#login").classList.remove("hide"); $("#p").value=""; };
+
+/* ===== Navigation ===== */
+let cur = "dash", q = "", fs = "", ft = "";
+document.querySelectorAll("nav [data-v]").forEach(b => b.onclick = () => show(b.dataset.v));
+function show(v){
+  cur = v;
+  document.querySelectorAll("nav [data-v]").forEach(b => b.classList.toggle("on", b.dataset.v===v));
+  ({dash:dash, crimes:crimes, crims:criminals, offs:officers})[v]();
+}
+
+/* ===== Dashboard ===== */
+function dash(){
+  const c = db.crimes, n = s => c.filter(x => x.status===s).length;
+  const byType = TYPES.map(t => [t, c.filter(x => x.type===t).length]).filter(x => x[1]>0);
+  const mx = Math.max(1, ...byType.map(x => x[1]));
+  const recent = [...c].sort((a,b) => b.date.localeCompare(a.date)).slice(0,4);
+  $("#view").innerHTML = `
+  <div class="top"><h2>Dashboard</h2></div>
+  <div class="stats">
+    <div class="stat"><b>${c.length}</b><span>Total crime records</span></div>
+    <div class="stat s1"><b>${n("Open")}</b><span>Open cases</span></div>
+    <div class="stat s2"><b>${n("Investigating")}</b><span>Under investigation</span></div>
+    <div class="stat s3"><b>${n("Closed")}</b><span>Closed cases</span></div>
+    <div class="stat"><b>${db.criminals.filter(x=>x.status==="Wanted").length}</b><span>Wanted criminals</span></div>
+  </div>
+  <div class="two">
+    <div class="card"><h3>Crimes by type</h3>${byType.length ? byType.map(([t,k]) => `<div class="bar"><span>${esc(t)}</span><i style="width:${k/mx*100}%"></i><b>${k}</b></div>`).join("") : '<div class="empty">No records yet. Add a crime record to see the chart.</div>'}</div>
+    <div class="card"><h3>Latest records</h3>${recent.length ? recent.map(r => `<div style="padding:8px 0;border-bottom:1px solid var(--line)"><b>${esc(r.id)}</b> ${esc(r.type)} at ${esc(r.location)} ${pill(r.status)}<br><small style="color:var(--mute)">${esc(r.date)}</small></div>`).join("") : '<div class="empty">Nothing to show yet.</div>'}</div>
+  </div>`;
+}
+
+/* ===== Crime records ===== */
+function crimes(){
+  const rows = db.crimes.filter(r => {
+    const text = (r.id+r.type+r.location+r.description).toLowerCase();
+    return text.includes(q.toLowerCase()) && (!fs || r.status===fs) && (!ft || r.type===ft);
+  });
+  $("#view").innerHTML = `
+  <div class="top"><h2>Crime records</h2>
+    <div class="row"><button class="btn alt" id="csv">Export CSV</button><button class="btn" id="add">Add record</button></div></div>
+  <div class="row" style="margin-bottom:14px">
+    <input id="q" placeholder="Search by ID, type, place or details" value="${esc(q)}">
+    <select id="fs"><option value="">All statuses</option>${opts(CSTAT,fs)}</select>
+    <select id="ft"><option value="">All crime types</option>${opts(TYPES,ft)}</select>
+  </div>
+  <div class="scroll"><table><thead><tr><th>ID</th><th>Type</th><th>Location</th><th>Date</th><th>Officer</th><th>Suspect</th><th>Status</th><th></th></tr></thead><tbody>
+  ${rows.length ? rows.map(r => `<tr><td><b>${esc(r.id)}</b></td><td>${esc(r.type)}</td><td>${esc(r.location)}</td><td>${esc(r.date)}</td>
+    <td>${esc(person(db.officers,r.officerId)?.name || "Unassigned")}</td><td>${esc(person(db.criminals,r.criminalId)?.name || "None")}</td><td>${pill(r.status)}</td>
+    <td><div class="acts"><button class="btn alt sm" data-e="${esc(r.id)}">Edit</button><button class="btn del sm" data-d="${esc(r.id)}">Delete</button></div></td></tr>`).join("")
+    : `<tr><td colspan="8" class="empty">No records match. Clear the filters or add a new record.</td></tr>`}
+  </tbody></table></div>`;
+  $("#q").oninput = e => { q = e.target.value; crimes(); const i=$("#q"); i.focus(); i.setSelectionRange(q.length,q.length); };
+  $("#fs").onchange = e => { fs = e.target.value; crimes(); };
+  $("#ft").onchange = e => { ft = e.target.value; crimes(); };
+  $("#add").onclick = () => crimeForm();
+  $("#csv").onclick = exportCSV;
+  document.querySelectorAll("[data-e]").forEach(b => b.onclick = () => crimeForm(b.dataset.e));
+  document.querySelectorAll("[data-d]").forEach(b => b.onclick = () => {
+    if(confirm("Delete record " + b.dataset.d + "? This cannot be undone.")){ db.crimes = db.crimes.filter(x => x.id!==b.dataset.d); save(); crimes(); toast("Record deleted"); }
+  });
+}
+function crimeForm(id){
+  const r = id ? person(db.crimes,id) : {type:TYPES[0],location:"",date:"",description:"",status:"Open",officerId:"",criminalId:""};
+  $("#dbody").innerHTML = `<h3>${id ? "Edit " + esc(id) : "Add crime record"}</h3>
+  <div class="g2"><div><label>Crime type</label><select id="f1">${opts(TYPES,r.type)}</select></div>
+  <div><label>Date</label><input id="f2" type="date" value="${esc(r.date)}"></div></div>
+  <label>Location</label><input id="f3" value="${esc(r.location)}">
+  <label>Details</label><textarea id="f4">${esc(r.description)}</textarea>
+  <div class="g2"><div><label>Status</label><select id="f5">${opts(CSTAT,r.status)}</select></div>
+  <div><label>Investigating officer</label><select id="f6"><option value="">Unassigned</option>${db.officers.map(o=>`<option value="${o.id}" ${o.id===r.officerId?"selected":""}>${esc(o.name)}</option>`).join("")}</select></div></div>
+  <label>Suspect</label><select id="f7"><option value="">None</option>${db.criminals.map(c=>`<option value="${c.id}" ${c.id===r.criminalId?"selected":""}>${esc(c.name)}</option>`).join("")}</select>
+  <div class="err" id="ferr"></div>
+  <div class="row" style="justify-content:flex-end"><button class="btn alt" id="cx">Cancel</button><button class="btn" id="sv">Save record</button></div>`;
+  $("#dlg").showModal();
+  $("#cx").onclick = () => $("#dlg").close();
+  $("#sv").onclick = () => {
+    try{
+      const rec = new CrimeRecord({id: id || nextId("CR", db.crimes).replace(/-(\d+)/,(m,n)=>"-"+Math.max(1001,+n)),
+        type:$("#f1").value,date:$("#f2").value,location:$("#f3").value.trim(),description:$("#f4").value.trim(),
+        status:$("#f5").value,officerId:$("#f6").value,criminalId:$("#f7").value});
+      rec.validate();                      // throws, like a custom Java exception
+      const plain = {...rec};
+      if(id) db.crimes = db.crimes.map(x => x.id===id ? plain : x); else db.crimes.push(plain);
+      save(); $("#dlg").close(); crimes(); toast("Record saved");
+    }catch(e){ $("#ferr").textContent = e.message; }
+  };
+}
+function exportCSV(){
+  const head = ["ID","Type","Location","Date","Status","Officer","Suspect","Details"];
+  const line = r => [r.id,r.type,r.location,r.date,r.status,person(db.officers,r.officerId)?.name||"",person(db.criminals,r.criminalId)?.name||"",r.description].map(v => '"'+String(v).replace(/"/g,'""')+'"').join(",");
+  const blob = new Blob([[head.join(","),...db.crimes.map(line)].join("\n")],{type:"text/csv"});
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "crime-records.csv"; a.click();
+}
+
+/* ===== Criminals ===== */
+function criminals(){
+  $("#view").innerHTML = `<div class="top"><h2>Criminals</h2><button class="btn" id="add">Add criminal</button></div>
+  <div class="scroll"><table><thead><tr><th>ID</th><th>Name</th><th>Age</th><th>Address</th><th>Status</th><th>Linked cases</th><th></th></tr></thead><tbody>
+  ${db.criminals.length ? db.criminals.map(c => `<tr><td><b>${esc(c.id)}</b></td><td>${esc(c.name)}</td><td>${esc(c.age)}</td><td>${esc(c.address)}</td><td>${pill(c.status)}</td>
+  <td>${db.crimes.filter(x=>x.criminalId===c.id).map(x=>esc(x.id)).join(", ") || "None"}</td>
+  <td><div class="acts"><button class="btn alt sm" data-e="${esc(c.id)}">Edit</button><button class="btn del sm" data-d="${esc(c.id)}">Delete</button></div></td></tr>`).join("") : `<tr><td colspan="7" class="empty">No criminals on file. Add one to link them to a case.</td></tr>`}
+  </tbody></table></div>`;
+  $("#add").onclick = () => critForm();
+  document.querySelectorAll("[data-e]").forEach(b => b.onclick = () => critForm(b.dataset.e));
+  document.querySelectorAll("[data-d]").forEach(b => b.onclick = () => {
+    if(confirm("Delete " + b.dataset.d + "? Linked cases will show no suspect.")){
+      db.criminals = db.criminals.filter(x => x.id!==b.dataset.d);
+      db.crimes.forEach(x => { if(x.criminalId===b.dataset.d) x.criminalId=""; });
+      save(); criminals(); toast("Criminal deleted");
+    }
+  });
+}
+function critForm(id){
+  const c = id ? person(db.criminals,id) : {name:"",age:"",address:"",status:"Wanted"};
+  $("#dbody").innerHTML = `<h3>${id ? "Edit " + esc(id) : "Add criminal"}</h3>
+  <label>Full name</label><input id="f1" value="${esc(c.name)}">
+  <div class="g2"><div><label>Age</label><input id="f2" type="number" min="1" max="120" value="${esc(c.age)}"></div>
+  <div><label>Status</label><select id="f3">${opts(PSTAT,c.status)}</select></div></div>
+  <label>Address</label><input id="f4" value="${esc(c.address)}">
+  <div class="err" id="ferr"></div>
+  <div class="row" style="justify-content:flex-end"><button class="btn alt" id="cx">Cancel</button><button class="btn" id="sv">Save criminal</button></div>`;
+  $("#dlg").showModal();
+  $("#cx").onclick = () => $("#dlg").close();
+  $("#sv").onclick = () => {
+    try{
+      const age = parseInt($("#f2").value);
+      if(!(age>0 && age<121)) throw new Error("Enter an age between 1 and 120.");
+      const p = new Criminal(id || nextId("C", db.criminals), $("#f1").value, age, $("#f4").value.trim(), $("#f3").value); // setter validates name
+      const plain = {id:p.id,name:p.name,age:p.age,address:p.address,status:p.status};
+      if(id) db.criminals = db.criminals.map(x => x.id===id ? plain : x); else db.criminals.push(plain);
+      save(); $("#dlg").close(); criminals(); toast("Criminal saved");
+    }catch(e){ $("#ferr").textContent = e.message; }
+  };
+}
+
+/* ===== Officers ===== */
+function officers(){
+  $("#view").innerHTML = `<div class="top"><h2>Officers</h2><button class="btn" id="add">Add officer</button></div>
+  <div class="scroll"><table><thead><tr><th>ID</th><th>Name</th><th>Rank</th><th>Badge no.</th><th>Assigned cases</th><th></th></tr></thead><tbody>
+  ${db.officers.length ? db.officers.map(o => `<tr><td><b>${esc(o.id)}</b></td><td>${esc(o.name)}</td><td>${esc(o.rank)}</td><td>${esc(o.badge)}</td>
+  <td>${db.crimes.filter(x=>x.officerId===o.id).length}</td>
+  <td><div class="acts"><button class="btn alt sm" data-e="${esc(o.id)}">Edit</button><button class="btn del sm" data-d="${esc(o.id)}">Delete</button></div></td></tr>`).join("") : `<tr><td colspan="6" class="empty">No officers yet. Add one to assign cases.</td></tr>`}
+  </tbody></table></div>`;
+  $("#add").onclick = () => offForm();
+  document.querySelectorAll("[data-e]").forEach(b => b.onclick = () => offForm(b.dataset.e));
+  document.querySelectorAll("[data-d]").forEach(b => b.onclick = () => {
+    if(confirm("Delete " + b.dataset.d + "? Their cases become unassigned.")){
+      db.officers = db.officers.filter(x => x.id!==b.dataset.d);
+      db.crimes.forEach(x => { if(x.officerId===b.dataset.d) x.officerId=""; });
+      save(); officers(); toast("Officer deleted");
+    }
+  });
+}
+function offForm(id){
+  const o = id ? person(db.officers,id) : {name:"",rank:"Inspector",badge:""};
+  $("#dbody").innerHTML = `<h3>${id ? "Edit " + esc(id) : "Add officer"}</h3>
+  <label>Full name</label><input id="f1" value="${esc(o.name)}">
+  <div class="g2"><div><label>Rank</label><select id="f2">${opts(["Constable","Sub-Inspector","Inspector","DSP","SP"],o.rank)}</select></div>
+  <div><label>Badge number</label><input id="f3" value="${esc(o.badge)}"></div></div>
+  <div class="err" id="ferr"></div>
+  <div class="row" style="justify-content:flex-end"><button class="btn alt" id="cx">Cancel</button><button class="btn" id="sv">Save officer</button></div>`;
+  $("#dlg").showModal();
+  $("#cx").onclick = () => $("#dlg").close();
+  $("#sv").onclick = () => {
+    try{
+      const b = $("#f3").value.trim();
+      if(!b) throw new Error("Badge number is required.");
+      if(db.officers.some(x => x.badge===b && x.id!==id)) throw new Error("That badge number is already in use.");
+      const p = new Officer(id || nextId("O", db.officers), $("#f1").value, $("#f2").value, b);
+      const plain = {id:p.id,name:p.name,rank:p.rank,badge:p.badge};
+      if(id) db.officers = db.officers.map(x => x.id===id ? plain : x); else db.officers.push(plain);
+      save(); $("#dlg").close(); officers(); toast("Officer saved");
+    }catch(e){ $("#ferr").textContent = e.message; }
+  };
+}
+</script>
+</body>
+</html>
